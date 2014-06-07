@@ -1,0 +1,2 @@
+require './torrent'
+run Torrent
