@@ -19,14 +19,13 @@ class Torrent < Sinatra::Base
   post '/create_torrent.json' do
     request.body.rewind
     data = JSON.parse request.body.read
-    puts data
     File.open("/var/lib/transmission-daemon/downloads/#{data['archive_title']}.json", "w") do |f|
       f.write data
     end
 
-    `transmission-create --comment "#{data['archive_title']}" --tracker "udp://tracker.openbittorrent.com:80/announce" --outfile /var/lib/transmission-daemon/downloads/ #{data['archive_title']}.torrent /var/lib/transmission-daemon/downloads/#{data['archive_title']}.json` 
+    `transmission-create --comment "#{data['archive_title']}" --tracker "udp://tracker.openbittorrent.com:80/announce" --outfile /var/lib/transmission-daemon/downloads/#{data['archive_title']}.torrent /var/lib/transmission-daemon/downloads/#{data['archive_title']}.json` 
     
-    `transmission-remote 107.170.215.106:9091 --auth=transmission:tr@nsm1ss10n --add /var/lib/transmission-daemon/downloads/#{data['archive_title']}.torrent`
+    `transmission-remote ip_address:9091 --auth=transmission_user:transmission_pass --add /var/lib/transmission-daemon/downloads/#{data['archive_title']}.torrent`
 
     json status: :success
   end
