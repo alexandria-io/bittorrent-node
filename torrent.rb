@@ -18,14 +18,21 @@ class Torrent < Sinatra::Base
 
   post '/create_torrent.json' do
     request.body.rewind
-    data = JSON.parse request.body.read
-    File.open("/var/lib/transmission-daemon/downloads/#{data['archive_title']}.json", "w") do |f|
-      f.write data
+    data = request.body.read
+    puts data
+    parsed_data = JSON.parse data 
+
+    Dir.mkdir "/var/lib/transmission-daemon/downloads/#{parsed_data['volume_title']}"
+
+    parsed_data['pages'].each do |page|
+      File.open("/var/lib/transmission-daemon/downloads/#{parsed_data['volume_title']}/#{page['page_title']}_#{page['page_text'].count}twts.json", "w") do |f|
+        f.write page.to_json
+      end
     end
 
-    `transmission-create --comment "#{data['archive_title']}" --tracker "udp://tracker.openbittorrent.com:80/announce" --outfile /var/lib/transmission-daemon/downloads/#{data['archive_title']}.torrent /var/lib/transmission-daemon/downloads/#{data['archive_title']}.json` 
+    `transmission-create --comment "#{parsed_data['archive_title']} | #{parsed_data['volume_title']}" --tracker "udp://tracker.openbittorrent.com:80/announce" --outfile /var/lib/transmission-daemon/downloads/#{parsed_data['volume_title']}.torrent /var/lib/transmission-daemon/downloads/#{parsed_data['volume_title']}` 
     
-    `transmission-remote ip_address:9091 --auth=transmission_user:transmission_pass --add /var/lib/transmission-daemon/downloads/#{data['archive_title']}.torrent`
+    `transmission-remote ip_address:9091 --auth=transmission_user:transmission_pass --add /var/lib/transmission-daemon/downloads/#{parsed_data['volume_title']}.torrent`
 
     json status: :success
   end
